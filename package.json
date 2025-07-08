@@ -1,0 +1,32 @@
+{
+  "name": "acejs",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A lightweight JavaScript library for decorators, reactivity, and web components.",
+  "main": "./dist/acejs.cjs.js",
+  "module": "./dist/acejs.esm.js",
+  "unpkg": "./dist/acejs.min.js",
+  "types": "./dist/acejs.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/acejs.esm.js",
+      "require": "./dist/acejs.cjs.js"
+    }
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "test": "echo 'No tests defined'"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/plugin-proposal-decorators": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.44.2",
+    "rollup-plugin-dts": "^6.2.1"
+  }
+}
