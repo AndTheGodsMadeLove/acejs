@@ -39,13 +39,13 @@ function trigger(target, key) {
 
     const dependency = dependencies.get(key);
     if (dependency) {
-        dependency.forEach(effectFn => effectQueue.add(effectFn));
+        dependency.forEach((effectFn) => effectQueue.add(effectFn));
     }
 
     if (!isBatching) {
         isBatching = true;
         queueMicrotask(() => {
-            effectQueue.forEach(effectFn => effectFn());
+            effectQueue.forEach((effectFn) => effectFn());
             effectQueue.clear();
             isBatching = false;
         });
@@ -59,7 +59,7 @@ function trigger(target, key) {
  * @param {{ deep?: boolean }} [options] - Options for reactivity.
  * @returns {T} - The reactive proxy.
  */
-function reactive(target, options) {
+export function reactive(target, options) {
     if (!isObject(target)) return target;
 
     return new Proxy(target, {
@@ -128,7 +128,16 @@ function computed(getter) {
     return computedProxy;
 }
 
-
+/**
+ * Creates a reactive reference for a primitive value or object.
+ * @template T
+ * @param {T} value - The initial value of the reference.
+ * @returns {Object} - A reactive reference with a `value` property.
+ */
+export function ref(value) {
+    const refObject = reactive({ value });
+    return refObject;
+}
 
 /**
  * Decorator to create a reactive effect for a method.
@@ -137,7 +146,9 @@ function computed(getter) {
  */
 export function Effect(target, context) {
     if (context.kind !== 'method') {
-        throw new Error(`@Effect can only be used on methods, not on "${context.kind}"`);
+        throw new Error(
+            `@Effect can only be used on methods, not on "${context.kind}"`
+        );
     }
 
     context.addInitializer(function () {
@@ -154,7 +165,9 @@ export function Effect(target, context) {
  */
 export function Reactive(target, context) {
     if (context.kind !== 'field') {
-        throw new Error(`@Reactive can only be used on fields, not on "${context.kind}"`);
+        throw new Error(
+            `@Reactive can only be used on fields, not on "${context.kind}"`
+        );
     }
 
     return (value, options = {}) => reactive(value, options);
@@ -167,7 +180,9 @@ export function Reactive(target, context) {
  */
 export function Computed(target, context) {
     if (context.kind !== 'field') {
-        throw new Error(`@Computed can only be used on fields, not on "${context.kind}"`);
+        throw new Error(
+            `@Computed can only be used on fields, not on "${context.kind}"`
+        );
     }
 
     context.addInitializer(function () {
@@ -176,6 +191,31 @@ export function Computed(target, context) {
 
         Object.defineProperty(this, context.name, {
             get: () => computedValue.value,
+        });
+    });
+}
+
+/**
+ * Decorator to make a class field a reactive reference.
+ * @param {Object} target - The target class.
+ * @param {Object} context - The context of the field.
+ */
+export function Ref(target, context) {
+    if (context.kind !== 'field') {
+        throw new Error(
+            `@Ref can only be used on fields, not on "${context.kind}"`
+        );
+    }
+
+    context.addInitializer(function () {
+        const initialValue = this[context.name];
+        const refValue = ref(initialValue);
+
+        Object.defineProperty(this, context.name, {
+            get: () => refValue.value,
+            set: (newValue) => {
+                refValue.value = newValue;
+            },
         });
     });
 }

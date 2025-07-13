@@ -1,8 +1,11 @@
 {
-  "name": "acejs",
-  "version": "0.1.0",
+  "name": "@andthegodsmadelove/acejs",
+  "version": "0.1.1",
   "type": "module",
   "description": "A lightweight JavaScript library for decorators, reactivity, and web components.",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "main": "./dist/acejs.cjs.js",
   "module": "./dist/acejs.esm.js",
   "unpkg": "./dist/acejs.min.js",
