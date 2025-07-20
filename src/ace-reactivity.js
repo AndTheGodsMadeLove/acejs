@@ -103,7 +103,7 @@ function useEffect(fn) {
  * @param {Function} getter - The function to compute the value.
  * @returns {Proxy} - A reactive proxy for the computed value.
  */
-function computed(getter) {
+function createComputedProxy(getter) {
     let cachedValue;
     let isDirty = true;
 
@@ -144,11 +144,9 @@ export function ref(value) {
  * @param {Function} target - The target method.
  * @param {Object} context - The context of the method.
  */
-export function Effect(target, context) {
+export function effect(target, context) {
     if (context.kind !== 'method') {
-        throw new Error(
-            `@Effect can only be used on methods, not on "${context.kind}"`
-        );
+        throw new Error(`@effect can only be used on methods, not on "${context.kind}"`);
     }
 
     context.addInitializer(function () {
@@ -163,11 +161,9 @@ export function Effect(target, context) {
  * @param {Object} context - The context of the field.
  * @returns {Function} - A function to initialize the reactive field.
  */
-export function Reactive(target, context) {
+export function state(target, context) {
     if (context.kind !== 'field') {
-        throw new Error(
-            `@Reactive can only be used on fields, not on "${context.kind}"`
-        );
+        throw new Error(`@state can only be used on fields, not on "${context.kind}"`);
     }
 
     return (value, options = {}) => reactive(value, options);
@@ -178,16 +174,14 @@ export function Reactive(target, context) {
  * @param {Object} target - The target class.
  * @param {Object} context - The context of the field.
  */
-export function Computed(target, context) {
+export function computed(target, context) {
     if (context.kind !== 'field') {
-        throw new Error(
-            `@Computed can only be used on fields, not on "${context.kind}"`
-        );
+        throw new Error(`@computed can only be used on fields, not on "${context.kind}"`);
     }
 
     context.addInitializer(function () {
         const getter = this[context.name];
-        const computedValue = computed(getter.bind(this));
+        const computedValue = createComputedProxy(getter.bind(this));
 
         Object.defineProperty(this, context.name, {
             get: () => computedValue.value,
@@ -200,11 +194,9 @@ export function Computed(target, context) {
  * @param {Object} target - The target class.
  * @param {Object} context - The context of the field.
  */
-export function Ref(target, context) {
+export function property(target, context) {
     if (context.kind !== 'field') {
-        throw new Error(
-            `@Ref can only be used on fields, not on "${context.kind}"`
-        );
+        throw new Error(`@property can only be used on fields, not on "${context.kind}"`);
     }
 
     context.addInitializer(function () {

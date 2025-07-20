@@ -1,8 +1,8 @@
 {
   "name": "@andthegodsmadelove/acejs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
-  "description": "A lightweight JavaScript library for decorators, reactivity, and web components.",
+  "description": "This is not the description you are looking for.",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },

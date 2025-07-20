@@ -1,13 +1,48 @@
 import { reactive } from './ace-reactivity.js';
-import { camelCaseToAttributeName } from './ace-utils.js';
+import { propertyToAttribute, queryDom } from './ace-utils.js';
 
-function propertyToAttribute(key, value) {
-    const attrName = camelCaseToAttributeName(key);
-    if (value === null || value === undefined) {
-        this.removeAttribute(attrName);
-    } else {
-        this.setAttribute(attrName, value.toString());
-    }
+/**
+ * Decorator to query an element by CSS selector in shadow DOM.
+ * @param {string} selector - The CSS selector.
+ * @returns {PropertyDecorator} - A decorator for fields.
+ */
+export function query(selector) {
+    return function (target, context) {
+        if (context.kind !== 'field') {
+            throw new Error(`@query can only be used on fields, not on "${context.kind}"`);
+        }
+        context.addInitializer(function () {
+            Object.defineProperty(this, context.name, {
+                get: function () {
+                    return queryDom(this, selector, false);
+                },
+                configurable: true,
+                enumerable: true,
+            });
+        });
+    };
+}
+
+/**
+ * Decorator to query all elements by CSS selector in shadow DOM.
+ * @param {string} selector - The CSS selector.
+ * @returns {PropertyDecorator} - A decorator for fields.
+ */
+export function queryAll(selector) {
+    return function (target, context) {
+        if (context.kind !== 'field') {
+            throw new Error(`@queryAll can only be used on fields, not on "${context.kind}"`);
+        }
+        context.addInitializer(function () {
+            Object.defineProperty(this, context.name, {
+                get: function () {
+                    return queryDom(this, selector, true);
+                },
+                configurable: true,
+                enumerable: true,
+            });
+        });
+    };
 }
 
 /**
@@ -15,12 +50,10 @@ function propertyToAttribute(key, value) {
  * @param {string} name - The name of the custom element.
  * @returns {ClassDecorator} - A decorator function for classes.
  */
-export function CustomElement(name) {
+export function customElement(name) {
     return function (target, context) {
         if (context.kind !== 'class') {
-            throw new Error(
-                `@CustomElement can only be used on classes, not on "${context.kind}"`
-            );
+            throw new Error(`@customElement can only be used on classes, not on "${context.kind}"`);
         }
 
         context.addInitializer(() => customElements.define(name, target));
@@ -33,11 +66,9 @@ export function CustomElement(name) {
  * @param {Object} context - The context of the method.
  * @returns {MethodDecorator} - A decorator function for methods.
  */
-export function Bound(target, context) {
+export function bound(target, context) {
     if (context.kind !== 'method') {
-        throw new Error(
-            `@Bound can only be used on methods, not on "${context.kind}"`
-        );
+        throw new Error(`@bound can only be used on methods, not on "${context.kind}"`);
     }
 
     context.addInitializer(function () {
@@ -51,11 +82,9 @@ export function Bound(target, context) {
  * @param {Function} [options.converter] - A function to convert the attribute value to a property value.
  * @returns {PropertyDecorator} - A decorator function for properties.
  */
-export function Reflected(target, context) {
+export function attribute(target, context) {
     if (context.kind !== 'field') {
-        throw new Error(
-            `@Reflected can only be used on fields, not on "${context.kind}"`
-        );
+        throw new Error(`@attribute can only be used on fields, not on "${context.kind}"`);
     }
 
     context.addInitializer(function () {

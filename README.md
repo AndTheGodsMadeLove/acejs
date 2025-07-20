@@ -33,31 +33,94 @@ To enable decorators in your project:
    }
    ```
 
+3. **Using Vite**
+   Install dependencies
+
+   ```bash
+   npm install --save-dev @babel/core @babel/plugin-proposal-decorators @rollup/pluginutils
+   ```
+
+   Create a vite plugin to enable decorators for your project
+   ```javascript
+   import { createFilter } from '@rollup/pluginutils';
+   import babel from '@babel/core';
+
+   export default function decoratorsPlugin(options = {}) {
+     const filter = createFilter(options.include, options.exclude);
+
+     return {
+       name: 'vite-plugin-decorators',
+
+       transform(code, id) {
+         if (!filter(id)) return null;
+
+         const result = babel.transformSync(code, {
+           filename: id,
+           plugins: [
+             [
+               '@babel/plugin-proposal-decorators',
+               { version: '2023-11' },
+             ],
+           ],
+         });
+
+         return {
+           code: result.code,
+           map: result.map,
+         };
+       },
+     };
+   }
+   ```
+
+   Use the plugin in the vite configuration
+   ```javascript
+   import { defineConfig } from 'vite';
+   import decoratorsPlugin from './vite-plugin-decorators';
+   import path from 'path';
+
+   export default defineConfig({
+     plugins: [
+       decoratorsPlugin({
+         include: [
+           'src/**/*.js',
+         ],
+       }),
+     ],
+   });
+   ```
+
 ## Decorators
 
-### `@CustomElement`
+### `@customElement`
 Registers a class as a custom element.
 
-### `@Bound`
+### `@bound`
 Binds a method to the instance of the class.
 
-### `@Reflected`
+### `@attribute`
 Makes a property reactive and reflects it to an attribute.
 
-### `@Reactive`
+### `@state`
 Makes a class field reactive.
 
-### `@Effect`
+### `@effect`
 Creates a reactive effect for a method.
 
-### `@Computed`
+### `@computed`
 Creates a computed property that updates automatically when its dependencies change.
 
-### `@Ref`
+### `@property`
 Makes a class field a reactive reference.
 
-### `@Service`
+### `@provide`
 Registers a class as a service in the dependency injection container.
 
-### `@Inject`
+### `@inject`
 Injects a service into a field or method.
+
+### `@query`
+Queries a single element by CSS selector in the component's shadow DOM.
+
+### `@queryAll`
+Queries all elements by CSS selector in the component's shadow DOM.

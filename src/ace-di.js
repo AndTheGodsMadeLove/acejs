@@ -9,23 +9,22 @@ const container = new Map();
  * @param {string} name - The name of the service.
  * @returns {ClassDecorator} - A decorator function for classes.
  */
-export function Service(name) {
+export function provide(name) {
     return function (target, context) {
         if (context.kind !== 'class') {
-            throw new Error(
-                `@Service can only be used on classes, not on "${context.kind}"`
-            );
+            throw new Error(`@Service can only be used on classes, not on "${context.kind}"`);
         }
+
         container.set(name, new target());
     };
 }
 
 /**
- * Injects a service into a field or method.
+ * Injects a service from the dependency injection container into a field or method.
  * @param {string} name - The name of the service to inject.
  * @returns {FieldDecorator|MethodDecorator} - A decorator function for fields or methods.
  */
-export function Inject(name) {
+export function inject(name) {
     return function (target, context) {
         if (context.kind === 'field') {
             return () => container.get(name);

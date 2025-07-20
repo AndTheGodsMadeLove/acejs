@@ -1,4 +1,3 @@
-export { isObject } from './ace-utils.js';
-export { Inject, Service } from './ace-di.js';
-export { Reactive, Ref, Effect, Computed } from './ace-reactivity.js';
-export { Bound, CustomElement, Reflected } from './ace-components.js';
+export { provide, inject } from './ace-di.js';
+export { state, property, effect, computed } from './ace-reactivity.js';
+export { bound, customElement, attribute, query, queryAll } from './ace-components.js';
