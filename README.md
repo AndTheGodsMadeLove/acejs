@@ -1,6 +1,6 @@
-# acejs
+# another web component
 
-A lightweight JavaScript library for web components.
+Small helper library for web components created to explore decorators proposal
 
 ## Dependencies
 
@@ -95,23 +95,194 @@ To enable decorators in your project:
 ### `@customElement`
 Registers a class as a custom element.
 
+```javascript
+@customElement('my-header')
+class MyHeader extends HTMLElement {
+  // ...
+}
+
+customElements.getName(MyHeader); // my-header
+```
+
 ### `@bound`
 Binds a method to the instance of the class.
 
-### `@attribute`
-Makes a property reactive and reflects it to an attribute.
+```javascript
+@customElement('my-header')
+class MyHeader extends HTMLElement {
+  // ...
+
+  @bound
+  getBoundThis() {
+    return this;
+  }
+
+  getThis() {
+    return this;
+  }
+}
+
+const header = new MyHeader();
+header.getBoundThis.apply(String) === header // true
+header.getThis.apply(String) === header // false
+```
+
 
 ### `@state`
 Makes a class field reactive.
 
+```javascript
+@customElement('my-header')
+class MyHeader extends HTMLElement {
+  // ...
+
+  @state
+  user = {
+    name: 'John Doe',
+    age: 42,
+  };
+
+  @effect
+  onUserChange() {
+    console.log(`User changed: ${JSON.stringify(this.user)}`);
+  }
+
+  @effect
+  onNameChange() {
+    console.log(`Username changed to: ${this.user.name}`);
+  }
+}
+
+const header = new MyHeader();
+header.user.name = 'Jimi Hendrix';
+// User changed: {"name":"Jimi Hendrix","age":42}
+// Username changed to: Jimi Hendrix
+header.user.age = 27;
+// User changed: {"name":"Jimi Hendrix","age":27}
+```
+
 ### `@effect`
 Creates a reactive effect for a method.
+
+### `@attribute`
+Makes a property reactive and reflects it to an attribute.
+
+```javascript
+@customElement('my-header')
+class MyHeader extends HTMLElement {
+  // ...
+
+  @attribute
+  title = 'Default Title';
+
+  @effect
+  updateTitle() {
+    console.log(`New Title: "${this.title}"`);
+  }
+}
+
+const header = new MyHeader();
+header.title = 'Hello World';
+// New Title: "Hello World"
+header.getAttribute('title') // Hello World
+
+header.setAttribute('title', 'Hello Jimi');
+// New Title: Hello Jimi
+header.title === 'Hello Jimi'; // true
+```
 
 ### `@computed`
 Creates a computed property that updates automatically when its dependencies change.
 
+```javascript
+@customElement('my-header')
+class MyHeader extends HTMLElement {
+  // ...
+
+  @state
+  user = {
+    name: 'John Doe',
+    age: 42,
+  };
+
+  @computed
+  doubledAge = () => this.user.age * 2;
+
+  @effect
+  doSomething() {
+    console.log(`Doubled age: ${this.doubledAge}`);
+  }
+}
+
+const header = new MyHeader();
+header.user.age = 4;
+// Doubled age: 8
+header.user.age = 21;
+// Doubled age: 42
+```
+
 ### `@property`
 Makes a class field a reactive reference.
+
+```javascript
+@customElement('my-header')
+class MyHeader extends HTMLElement {
+  // ...
+  @property
+  age = 42;
+
+  @effect
+  doSomething() {
+    console.log(`Age changed to: ${this.age.value}`);
+  }
+}
+
+const header = new MyHeader();
+header.age = 24;
+// Age changed to: 24
+```
+
+### `@query`
+Queries a single element by CSS selector in the component's shadow DOM.
+
+```javascript
+@customElement('my-header')
+class MyHeader extends HTMLElement {
+  @query('button')
+  buttonElement;
+
+  constructor() {
+  super();
+
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = '<button>click me</button>';
+  }
+}
+
+const header = new MyHeader();
+header.buttonElement // <button>click me</button>
+```
+
+### `@queryAll`
+Queries all elements by CSS selector in the component's shadow DOM.
+
+```javascript
+@customElement('my-header')
+class MyHeader extends HTMLElement {
+  @queryAll('button')
+  buttonElements;
+
+  constructor() {
+  super();
+
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = `<button>A</button><button>B</button>`;
+  }
+}
+
+const header = new MyHeader();
+header.buttonElements.length // 2
+```
 
 ### `@provide`
 Registers a class as a service in the dependency injection container.
@@ -119,8 +290,30 @@ Registers a class as a service in the dependency injection container.
 ### `@inject`
 Injects a service into a field or method.
 
-### `@query`
-Queries a single element by CSS selector in the component's shadow DOM.
+```javascript
+@provide('User')
+class User {
+  name = 'Jimi';
+}
 
-### `@queryAll`
-Queries all elements by CSS selector in the component's shadow DOM.
+@provide
+class Logger {
+  log(msg) {
+    console.log('Logger:', msg);
+  }
+}
+
+class Test {
+  @inject('Logger')
+  logger;
+
+  @inject('User')
+  logUser(user) {
+    this.logger.log(user.name)
+  }
+}
+
+const t = new Test();
+t.logUser();
+// Logger: Jimi
+```
